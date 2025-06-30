@@ -139,6 +139,69 @@
             align-items: center;
             margin-bottom: 4px;
         }
+        /* --- Responsive para móviles --- */
+@media (max-width: 600px) {
+    html, body {
+        width: 100vw;
+        height: 100vh;
+        min-width: 100vw;
+        min-height: 100vh;
+        overflow: auto;
+    }
+    .top-container {
+        width: 100vw;
+        padding: 0 2vw;
+    }
+    .game-title {
+        font-size: 1.5rem;
+        margin-top: 4px;
+        margin-bottom: 0;
+    }
+    .button-row {
+        flex-direction: column;
+        gap: 4px;
+        margin-bottom: 2px;
+    }
+    .palette-btn, #langBtn {
+        font-size: 1em;
+        padding: 7px 10px;
+        border-radius: 14px;
+        width: 100%;
+        min-width: 0;
+        margin: 0;
+    }
+    .instructions {
+        font-size: 0.95em;
+        max-width: 98vw;
+        margin-bottom: 4px;
+        padding: 0 2vw;
+    }
+    .game-header {
+        min-height: 18px;
+        padding: 0 2vw;
+        font-size: 0.95em;
+    }
+    .restart-btn {
+        font-size: 1em;
+        padding: 7px 10px;
+    }
+    .score {
+        font-size: 1em;
+    }
+    .game-canvas {
+        width: 100vw !important;
+        max-width: 100vw !important;
+        height: calc(100vh - 170px) !important;
+        max-height: 60vh !important;
+        min-height: 220px;
+        border-width: 1.5px;
+    }
+    .game-over {
+        font-size: 1.1em;
+        padding: 18px 4vw;
+        border-width: 2px;
+    }
+}
     </style>
 </head>
 <body>
@@ -636,6 +699,53 @@ function maybeAddCurvedWall(avoidX, avoidY) {
             previewConnections = [];
             previewGeneratedAntennas = null;
         });
+
+        // --- SOPORTE TOUCH PARA MÓVIL ---
+canvas.addEventListener('touchstart', function(e) {
+    if (gameOver) return;
+    isMouseDown = true;
+    const rect = canvas.getBoundingClientRect();
+    const touch = e.touches[0];
+    const x = touch.clientX - rect.left;
+    const y = touch.clientY - rect.top;
+    updatePreview(x, y);
+    e.preventDefault();
+}, { passive: false });
+
+canvas.addEventListener('touchmove', function(e) {
+    if (!isMouseDown) return;
+    const rect = canvas.getBoundingClientRect();
+    const touch = e.touches[0];
+    const x = touch.clientX - rect.left;
+    const y = touch.clientY - rect.top;
+    updatePreview(x, y);
+    e.preventDefault();
+}, { passive: false });
+
+canvas.addEventListener('touchend', function(e) {
+    if (gameOver || !isMouseDown) return;
+    const rect = canvas.getBoundingClientRect();
+    // Usamos el último touch conocido (puede que no haya ninguno en touches)
+    let x, y;
+    if (e.changedTouches && e.changedTouches[0]) {
+        x = e.changedTouches[0].clientX - rect.left;
+        y = e.changedTouches[0].clientY - rect.top;
+    } else {
+        // fallback: centro del canvas
+        x = canvas.width / 2;
+        y = canvas.height / 2;
+    }
+    placeAntenna(x, y);
+    isMouseDown = false;
+    e.preventDefault();
+}, { passive: false });
+
+canvas.addEventListener('touchcancel', function() {
+    isMouseDown = false;
+    previewAntenna = null;
+    previewConnections = [];
+    previewGeneratedAntennas = null;
+});
 
         // --- FONDO PLANO (sin suelo ni detalles) ---
         let bgAnimT = 0;
